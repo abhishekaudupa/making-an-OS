@@ -19,10 +19,13 @@ start:
 	mov ax, 0
 	mov es, ax
 
-	printString msgStart
-	hd 0, 185
+	call loadGDT
 
 	jmp $
+
+loadGDT:
+	lgdt [gdtr - start]
+	ret
 
 print:
 	push ax
@@ -126,3 +129,14 @@ sixteen:
 
 hexNums:
 	DB "0123456789abcdef"
+
+gdt:
+	null_descriptor:	DQ 0x0
+	kernel_code_seg:	DQ 0x0
+	kernel_data_seg:	DQ 0x0
+	user_code_seg:		DQ 0x0
+	user_data_seg:		DQ 0x0
+
+gdtr:
+	gdt_size: 		DW (8 * 5)
+	gdt_offset:		DD gdt
