@@ -44,10 +44,13 @@ $(BUILD):
 clean:
 	@rm -rf $(BUILD) *.out
 
-check:
+checkbl1:
 	objdump -b binary -D $(BUILD)/$(BOOTLD1_TGT) -mi8086 -Mintel --adjust-vma=0x7c00
+
+checkbl2:
+	objdump -b binary -D $(BUILD)/$(BOOTLD2_TGT) -mi8086 -Mintel --adjust-vma=0x7e00
 
 dd: $(BUILD)/$(DISK_IMAGE)
 	hd $<
 
-.PHONY: all clean run rundbg check
+.PHONY: all clean run rundbg checkbl1 checkbl2
