@@ -18,43 +18,37 @@ start:
 	pop ds
 	mov ax, 0
 	mov es, ax
-
-	call loadGDT
+	
+	printString msgStart
+	;call loadGDT
+	;call initVideoMode
+	;call enterProtectedMode
+	;call setupInterrupts
 
 	jmp $
 
+initVideoMode:
+	mov ah, 0x0
+    	mov al, 0x3
+    	int 0x10
+    
+    	mov ah, 0x1
+    	mov cx, 0x2000
+    	int 0x10
+	ret
+
 loadGDT:
+	cli
 	lgdt [gdtr - start]
 	ret
 
-print:
-	push ax
-	push bx
-	push si
-
-.printLoop:
-	lodsb
-	cmp al, 0
-	jz .printDone
-	mov ah, 0xe
-	mov bh, 0x0
-	int 0x10
-	jmp .printLoop
-
-.printDone:
-	pop si
-	pop bx
-	pop ax
+enterProtectedMode:
+	mov eax, cr0
+	or eax, 1
+	mov cr0, eax
 	ret
 
-printchar:
-	push ax
-	push bx
-	mov ah, 0xe
-	mov bh, 0x0
-	int 0x10
-	pop bx
-	pop ax
+setupInterrupts:
 	ret
 
 hexdump:
@@ -118,6 +112,8 @@ printNibble:
 	pop ax
 	ret
 
+%include "print.asm"
+
 nextline:
 	DB ENDL, 0x0
 
@@ -132,11 +128,13 @@ hexNums:
 
 gdt:
 	null_descriptor:	DQ 0x0
-	kernel_code_seg:	DQ 0x0
+	kernel_code_seg:	DQ 0x00cf9a000000ffff
 	kernel_data_seg:	DQ 0x0
 	user_code_seg:		DQ 0x0
 	user_data_seg:		DQ 0x0
 
 gdtr:
-	gdt_size: 		DW (8 * 5)
+	gdt_size: 		DW (8 * 1)
 	gdt_offset:		DD gdt
+
+

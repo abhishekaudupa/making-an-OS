@@ -8,7 +8,7 @@ DISK_IMAGE 	= disk.img
 PRJ_NAME 	= PYRROS
 
 ASM 		= nasm
-ASMFLAGS 	= -f bin
+ASMFLAGS 	= -f bin -i$(SRC)
 
 EMU		= qemu-system-i386
 EMUFLAGS	= -hda

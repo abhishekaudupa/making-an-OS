@@ -262,26 +262,7 @@ lbaToCHS:
 	pop ax
 	ret
 
-print:
-	push ax
-	push bx
-	push si
-	cld				; clear direction flag
-
-.printLoop:
-	lodsb
-	cmp al, 0
-	jz .printDone
-	mov ah, 0xe
-	mov bh, 0x0
-	int 0x10
-	jmp .printLoop
-
-.printDone:
-	pop si
-	pop bx
-	pop ax
-	ret
+%include "print.asm"
 
 msgStart:
 	DB "Stage 1 bootloader started", ENDL, 0x0
