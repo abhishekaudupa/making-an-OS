@@ -23,11 +23,14 @@ start:
 	mov es, ax
 	
 	printString msgStart
+	hd 0, 1506
+
 	;call loadGDT
 	;call initVideoMode
 	;call enterProtectedMode
 	;call setupInterrupts
-	call kernel_main
+
+	;call 0x8:start_kernel
 
 	jmp $
 
@@ -99,297 +102,28 @@ initPIC:
 	pop ax
 	ret
 
-isr_0:
-	cli
-	push 0
-	jmp isr_basic
-
-isr_1:
-	cli
-	push 1
-	jmp isr_basic
-
-isr_2:
-	cli
-	push 2
-	jmp isr_basic
-
-isr_3:
-	cli
-	push 3
-	jmp isr_basic
-
-isr_4:
-	cli
-	push 4
-	jmp isr_basic
-
-isr_5:
-	cli
-	push 5
-	jmp isr_basic
-
-isr_6:
-	cli
-	push 6
-	jmp isr_basic
-
-isr_7:
-	cli
-	push 7
-	jmp isr_basic
-
-isr_8:
-	cli
-	push 8
-	jmp isr_basic
-
-isr_9:
-	cli
-	push 9
-	jmp isr_basic
-
-isr_10:
-	cli
-	push 10
-	jmp isr_basic
-
-isr_11:
-	cli
-	push 11
-	jmp isr_basic
-
-isr_12:
-	cli
-	push 12
-	jmp isr_basic
-
-isr_13:
-	cli
-	push 13
-	jmp isr_basic
-
-isr_14:
-	cli
-	push 14
-	jmp isr_basic
-
-isr_15:
-	cli
-	push 15
-	jmp isr_basic
-
-isr_16:
-	cli
-	push 16
-	jmp isr_basic
-
-isr_17:
-	cli
-	push 17
-	jmp isr_basic
-
-isr_18:
-	cli
-	push 18
-	jmp isr_basic
-
-isr_19:
-	cli
-	push 19
-	jmp isr_basic
-
-isr_20:
-	cli
-	push 20
-	jmp isr_basic
-
-isr_21:
-	cli
-	push 21
-	jmp isr_basic
-
-isr_22:
-	cli
-	push 22
-	jmp isr_basic
-
-isr_23:
-	cli
-	push 23
-	jmp isr_basic
-
-isr_24:
-	cli
-	push 24
-	jmp isr_basic
-
-isr_25:
-	cli
-	push 25
-	jmp isr_basic
-
-isr_26:
-	cli
-	push 26
-	jmp isr_basic
-
-isr_27:
-	cli
-	push 27
-	jmp isr_basic
-
-isr_28:
-	cli
-	push 28
-	jmp isr_basic
-
-isr_29:
-	cli
-	push 29
-	jmp isr_basic
-
-isr_30:
-	cli
-	push 30
-	jmp isr_basic
-
-isr_31:
-	cli
-	push 31
-	jmp isr_basic
-
-isr_32:
-	cli
-	push 32
-	jmp irq_basic
-
-isr_33:
-	cli
-	push 33
-	jmp irq_basic
-
-isr_34:
-	cli
-	push 34
-	jmp irq_basic
-
-isr_35:
-	cli
-	push 35
-	jmp irq_basic
-
-isr_36:
-	cli
-	push 36
-	jmp irq_basic
-
-isr_37:
-	cli
-	push 37
-	jmp irq_basic
-
-isr_38:
-	cli
-	push 38
-	jmp irq_basic
-
-isr_39:
-	cli
-	push 39
-	jmp irq_basic
-
-isr_40:
-	cli
-	push 40
-	jmp irq_basic
-
-isr_41:
-	cli
-	push 41
-	jmp irq_basic
-
-isr_42:
-	cli
-	push 42
-	jmp irq_basic
-
-isr_43:
-	cli
-	push 43
-	jmp irq_basic
-
-isr_44:
-	cli
-	push 44
-	jmp irq_basic
-
-isr_45:
-	cli
-	push 45
-	jmp irq_basic
-
-isr_46:
-	cli
-	push 46
-	jmp irq_basic
-
-isr_47:
-	cli
-	push 47
-	jmp irq_basic
-
-isr_48:
-	cli
-	push 48
-	jmp irq_basic
-
-isr_basic:
-	call interrupt_handler
-	pop eax
-	sti
-	iret
-
-irq_basic:
-	call interrupt_handler
-
-	mov al, 0x20
-    	out PICMCommPort, al
-    
-    	cmp byte [esp], 40d
-    	jnge .irq_basic_end
-    
-    	mov al, 0x20
-    	out PICSCommPort, al
-
-.irq_basic_end:	
-	pop eax
-	sti
-	iret
-
 loadIDT:
 	lidt [idtr - start]
 	ret
 
 %include "print.asm"
+%include "hexdump.asm"
 
 msgStart:
 	DB "Stage 2 bootloader started", ENDL, 0x0
 
-gdt:
-	null_descriptor:	DQ 0x0000000000000000
-	kernel_code_seg:	DQ 0x00cf9a000000ffff
-	kernel_data_seg:	DQ 0x00cf92000000ffff
-	;user_code_seg:		DQ 0x0
-	;user_data_seg:		DQ 0x0
+bits 32
+start_kernel:
+	mov eax, 0x10
+	mov ds, eax
+	mov ss, eax
 
-gdtr:
-	gdt_size: 		DW (8 * 3)
-	gdt_offset:		DD gdt
+	mov eax, 0
+	mov es, eax
+	mov fs, eax
+	mov gs, eax
+	sti
+	call kernel_main
 
-idt:
-	dw isr_0, 8, 0x8e00, 0x0000
-	
-idtr:
-	idtr_size_bytes:	DW idtr - idt
-	idtr_base_addr:		dd idt
+%include "gdt.asm"
+%include "idt.asm"
