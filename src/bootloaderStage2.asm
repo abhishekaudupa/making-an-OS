@@ -13,6 +13,9 @@ bits 16
 	call hexdump
 %endmacro
 
+extern kernel_main
+extern interrupt_handler
+
 start:
 	push cs
 	pop ds
@@ -20,10 +23,11 @@ start:
 	mov es, ax
 	
 	printString msgStart
-	call loadGDT
-	call initVideoMode
-	call enterProtectedMode
-	call setupInterrupts
+	;call loadGDT
+	;call initVideoMode
+	;call enterProtectedMode
+	;call setupInterrupts
+	call kernel_main
 
 	jmp $
 
@@ -341,10 +345,9 @@ isr_basic:
 	sti
 	iret
 
-interrupt_handler:
-	ret
-
 irq_basic:
+	sti
+	iret
 
 loadIDT:
 	lidt [idtr - start]
