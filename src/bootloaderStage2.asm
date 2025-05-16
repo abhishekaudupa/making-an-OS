@@ -339,6 +339,11 @@ isr_47:
 	push 47
 	jmp irq_basic
 
+isr_48:
+	cli
+	push 48
+	jmp irq_basic
+
 isr_basic:
 	call interrupt_handler
 	pop eax
@@ -346,6 +351,19 @@ isr_basic:
 	iret
 
 irq_basic:
+	call interrupt_handler
+
+	mov al, 0x20
+    	out PICMCommPort, al
+    
+    	cmp byte [esp], 40d
+    	jnge .irq_basic_end
+    
+    	mov al, 0x20
+    	out PICSCommPort, al
+
+.irq_basic_end:	
+	pop eax
 	sti
 	iret
 
@@ -370,5 +388,8 @@ gdtr:
 	gdt_offset:		DD gdt
 
 idt:
-
+	dw isr_0, 8, 0x8e00, 0x0000
+	
 idtr:
+	idtr_size_bytes:	DW idtr - idt
+	idtr_base_addr:		dd idt
